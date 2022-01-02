@@ -112,3 +112,92 @@ where MaPB in
 from NhanVien
 group by MaPB
 having max(MaPB))
+
+--11 Tổng số lượng của các nhân viên trong phòng Hành chính.
+SELECT COUNT(MaNV) AS 'TongNV'
+FROM dbo.NhanVien
+WHERE MaPB = 'PB1'
+GROUP BY MaNV
+
+--12 Hiển thị tổng lương của các nhân viên có CMT tận cùng là 9
+SELECT TenNV, SoCMND, SUM(SoTien) AS 'TongLuong'
+FROM dbo.NhanVien 
+INNER JOIN dbo.LuongDA ON LuongDA.MaNV = NhanVien.MaNV
+WHERE RIGHT(SoCMND,1) = '9'
+GROUP BY  TenNV, SoCMND
+
+--13 Nhân viên có số lương cao nhất.
+SELECT * FROM
+( 
+    SELECT MaNV, SUM(SoTien) AS Luong
+	FROM dbo.LuongDA
+    GROUP BY  MaNV
+) AS TongLuong
+WHERE TongLuong.Luong = (
+    SELECT MAX(TongLuong.Luong) FROM 
+    (   
+	     SELECT MaNV, SUM(SoTien) AS Luong 
+		 FROM dbo.LuongDA
+		 GROUP BY MaNV
+	) AS Luong
+)
+
+
+--14 Nhân viên ở phòng Hành chính có giới tính bằng ‘F’ và có mức lương > 1200000.
+SELECT * FROM dbo.NhanVien
+INNER JOIN dbo.LuongDA ON LuongDA.MaNV = NhanVien.MaNV
+WHERE dbo.NhanVien.GioiTinh = 'F' AND dbo.LuongDA.Sotien > 1200000 AND dbo.NhanVien.MaPB = 'PB2'
+
+--15 Tìm tổng lương trên từng phòng.
+SELECT MaPB, SUM(SoTien) 
+FROM dbo.NhanVien 
+INNER JOIN dbo.LuongDA ON LuongDA.MaNV = NhanVien.MaNV
+GROUP BY MaPB
+
+--16 Liệt kê các dự án có ít nhất 2 người tham gia.
+SELECT MaDA, COUNT(MaNV) AS NguoiThamGia
+FROM dbo.LuongDA
+GROUP BY MaDA
+HAVING COUNT(MaNV) >= 1
+
+--17 Liệt kê thông tin chi tiết của nhân viên có tên bắt đầu bằng ký tự ‘N’.
+SELECT * FROM dbo.NhanVien
+WHERE LEFT(TenNV,1) = 'N'
+
+--18 Thông tin chi tiết của nhân viên được nhận tiền dự án trong năm 2003.
+SELECT MaNV,TenNV,NgaySinh,SoCMND,GioiTinh,DiaChi,NgayVaoLam FROM NhanVien
+JOIN dbo.LuongDA 
+ON NhanVien.MaNV = LuongDA.MaNV
+WHERE YEAR(NgayNhan) = 2021
+
+--19 thông tin chi tiết của nhân viên không tham gia bất cứ dự án nào.
+SELECT * FROM dbo.NhanVien
+WHERE MaNV NOT IN(
+SELECT MaNV FROM dbo.LuongDA
+)
+
+--20 Xóa dự 1 dự án DA05
+DELETE dbo.LuongDA WHERE MaDA = 'DA5'
+
+--21 Xóa nhân viên có tổng lương là 1000000 
+DELETE FROM dbo.LuongDA 
+WHERE SoTien = 1000000
+
+--22 Cập nhật lương cho DA02 tăng thêm 10% lương
+UPDATE LuongDA
+SET SoTien = SoTien*110/100
+WHERE MaDA = 'DA2';
+SELECT * FROM LuongDA
+
+--23 Xóa các nhân viên trong bảng NhanVien khi có dữ liệu trong bảng DA
+DELETE FROM NhanVien
+WHERE MaNV NOT IN(
+SELECT MaNV FROM dbo.LuongDA
+)
+
+--24 Đặt lại ngày vào làm của các nhân viên PB01 là 12/02/2020
+UPDATE NhanVien 
+SET NgayVaoLam = '2020-02-12'
+WHERE MaPB = 'PB1'
+
+
